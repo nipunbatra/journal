@@ -42,7 +42,7 @@ for feature in features:
             OFILE = "%s/%s_%s_%d.out" % (SLURM_OUT, appliance, feature, home)
             EFILE = "%s/%s_%s_%d.err" % (SLURM_OUT, appliance,  feature, home)
             SLURM_SCRIPT = "%s_%s_%d.pbs" % (appliance,feature, home)
-            CMD = 'python ../code/journal_gemello_all_homes_leave_one_out.py %d %s %s' % (home, appliance,feature)
+            CMD = 'python ../code/journal_gemello_all_homes_leave_one_out.py %s %s %d' % (appliance,feature, home)
             print CMD
             lines = []
             lines.append("#!/bin/sh\n")
