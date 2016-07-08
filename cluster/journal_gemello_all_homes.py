@@ -55,6 +55,6 @@ for feature in features:
             with open(SLURM_SCRIPT, 'w') as f:
                f.writelines(lines)
             command = ['sbatch', SLURM_SCRIPT]
-            print Popen(command)
+            #print Popen(command)
             time.sleep(1)
         time.sleep(10)
