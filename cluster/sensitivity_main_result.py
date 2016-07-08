@@ -25,10 +25,11 @@ features = ["Static", "Monthly+Static", "Monthly"]
 SLURM_OUT = "../slurm_out"
 from subprocess import Popen
 
-
+import time
 
 for feature in features:
     for appliance in appliances:
+
 
         if appliance=="hvac":
             start, stop=5, 11
@@ -53,3 +54,5 @@ for feature in features:
                f.writelines(lines)
             command = ['sbatch', SLURM_SCRIPT]
             print Popen(command)
+            time.sleep(1)
+        time.sleep(10)
