@@ -38,6 +38,7 @@ for feature in features:
 
         appliance_df= df.ix[df[['%s_%d' %(appliance,month) for month in range(start,stop)]].dropna().index]
         for home in appliance_df.index:
+            print home, appliance, feature
             OFILE = "%s/%s_%s_%d.out" % (SLURM_OUT, appliance, feature, home)
             EFILE = "%s/%s_%s_%d.err" % (SLURM_OUT, appliance,  feature, home)
             SLURM_SCRIPT = "%s_%s_%d.pbs" % (appliance,feature, home)
