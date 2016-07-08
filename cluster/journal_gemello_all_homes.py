@@ -43,6 +43,7 @@ for feature in features:
             EFILE = "%s/%s_%s_%d.err" % (SLURM_OUT, appliance,  feature, home)
             SLURM_SCRIPT = "%s_%s_%d.pbs" % (appliance,feature, home)
             CMD = 'python ../code/journal_gemello_all_homes_leave_one_out.py %d %s %s' % (home, appliance,feature)
+            print CMD
             lines = []
             lines.append("#!/bin/sh\n")
             lines.append('#SBATCH --time=0-06:0:00\n')
