@@ -41,7 +41,7 @@ for appliance in appliances:
         OFILE = "%s/%s_%d.out" % (SLURM_OUT, appliance, home)
         EFILE = "%s/%s_%d.err" % (SLURM_OUT, appliance,  home)
         SLURM_SCRIPT = "%s_%d.pbs" % (appliance, home)
-        CMD = 'python ../code/journal_create_inequalities_same_region.py %s %d %s %s %d' % (region, home, appliance,K)
+        CMD = 'python ../code/journal_create_inequalities_same_region.py %s %d %s %d' % (region, home, appliance,K)
         print CMD
         lines = []
         lines.append("#!/bin/sh\n")
