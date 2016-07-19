@@ -21,7 +21,7 @@ df = df.rename(columns={'house_num_rooms': 'num_rooms',
 df = df[(df.full_agg_available == 1) & (df.md_available == 1)]
 
 appliances = ["hvac","fridge","wm","dw","mw","oven"]
-features = ["Static", "Monthly+Static", "Monthly"]
+features = ["Static", "Monthly"]
 SLURM_OUT = "../slurm_out"
 from subprocess import Popen
 
