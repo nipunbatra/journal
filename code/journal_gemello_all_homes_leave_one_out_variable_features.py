@@ -1,5 +1,7 @@
 """
-This code generates the prediction for a region when we use homes containing all data
+This code generates the prediction for a region when we use
+homes containing any number of features. This is done by finding
+train set to consist of homes
 
 
 """
@@ -7,6 +9,7 @@ This code generates the prediction for a region when we use homes containing all
 # NEED TO RUN ON CLUSTER
 import sys
 
+from features import feature_map
 CLUSTER = True
 if CLUSTER:
     sys.path.insert(0, '/if6/nb2cz/anaconda/lib/python2.7/site-packages')
@@ -35,7 +38,7 @@ drop_rows = num_features_ser[num_features_ser==0].index
 df = df.drop(drop_rows)
 
 
-df = df[(df.full_agg_available == 1) & (df.md_available == 1)]
+#df = df[(df.full_agg_available == 1) & (df.md_available == 1)]
 
 
 def scale_0_1(ser, minimum=None, maximum=None):
@@ -94,8 +97,21 @@ def _find_accuracy(home, appliance, feature="Monthly"):
         start, stop=1, 13
 
     test_homes = [home]
-    train_homes = appliance_df[~appliance_df.index.isin([home])].index
 
+    test_home_features = appliance_df.ix[home][feature_map[feature]].dropna().index
+    print test_home_features, len(test_home_features)
+    if len(test_home_features)<9:
+        F_MAX = len(test_home_features)
+        F_max=len(test_home_features)
+    else:
+        F_max=8
+
+    # Train homes are the ones which contain the same set of features
+
+    temp_homes_df = appliance_df[~appliance_df.index.isin([home])]
+    train_homes = temp_homes_df[test_home_features].dropna().index
+    print train_homes, len(train_homes)
+    print temp_homes_df[test_home_features].dropna()
 
     #all_home_appliance = deepcopy(all_homes)
     #all_home_appliance[appliance] = train_homes
@@ -108,6 +124,10 @@ def _find_accuracy(home, appliance, feature="Monthly"):
         print cv_test
 
         cv_train_home=appliance_df.ix[train_homes[cv_train]]
+        if len(cv_train_home)<6:
+            K_max=len(cv_train_home)
+        else:
+            K_max=6
         cv_test_home = appliance_df.ix[train_homes[cv_test]]
         test_home_name = cv_test_home.index.values[0]
         #print cv_test_home
@@ -118,7 +138,7 @@ def _find_accuracy(home, appliance, feature="Monthly"):
         Y = cv_train_home[['%s_%d' %(appliance, i) for i in range(start, stop)]].sum(axis=1).values
         forest = ExtraTreesRegressor(n_estimators=250,
                               random_state=0)
-        forest.fit(cv_train_home[feature_map[feature]], Y)
+        forest.fit(cv_train_home[test_home_features], Y)
         importances = forest.feature_importances_
         indices = np.argsort(importances)[::-1]
 
@@ -128,7 +148,7 @@ def _find_accuracy(home, appliance, feature="Monthly"):
             out[test_home_name][K]={}
             for top_n in range(F_min,F_max):
                 out[test_home_name][K][top_n]=[]
-                top_n_features = cv_train_home[feature_map[feature]].columns[indices][:top_n]
+                top_n_features = cv_train_home[test_home_features].columns[indices][:top_n]
 
                 # Now fitting KNN on this
                 for month in range(start, stop):
@@ -150,7 +170,7 @@ def _find_accuracy(home, appliance, feature="Monthly"):
                 pred.columns = [['%s_%d' %(appliance, i) for i in range(start, stop)]]
                 gt = appliance_df.ix[h][['%s_%d' %(appliance, i) for i in range(start, stop)]]
                 error = (pred-gt).abs().div(gt).mul(100)
-                #print pred, gt, error
+                #print pred, gt, error, h
                 mean_error = error.mean().mean()
                 #print mean_error
 
@@ -163,11 +183,15 @@ def _find_accuracy(home, appliance, feature="Monthly"):
     print accur_df
     accur_min = accur_df.min().min()
     max_ac_df = accur_df[accur_df==accur_min]
-    F_best = cv_train_home[feature_map[feature]].columns[indices][:max_ac_df.mean(axis=1).dropna().index.values[0]].tolist()
+    F_best = cv_train_home[test_home_features].columns[indices][:max_ac_df.mean(axis=1).dropna().index.values[0]].tolist()
     K_best = max_ac_df.mean().dropna().index.values[0]
 
+    print F_best, K_best
+
     # Now predicting for test home
-    train_overall = appliance_df.ix[appliance_df[~appliance_df.index.isin([home])].index]
+    train_overall =appliance_df.ix[train_homes]
+    print train_overall
+    #train_overall = appliance_df.ix[appliance_df[~appliance_df.index.isin([home])].index]
     test_overall = appliance_df[appliance_df.index.isin([home])]
     pred_test = {}
     gt_test = {}
@@ -192,7 +216,7 @@ def _find_accuracy(home, appliance, feature="Monthly"):
 
 import os
 
-out_path = os.path.expanduser("~/output/journal/gemello/all_homes/")
+out_path = os.path.expanduser("~/output/journal/gemello/all_homes_variable_features/")
 import sys
 appliance, feature, home = sys.argv[1], sys.argv[2], sys.argv[3]
 home = int(home)
