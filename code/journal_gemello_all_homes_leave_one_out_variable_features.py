@@ -159,6 +159,34 @@ def _find_accuracy(home, appliance, feature="Monthly"):
         # Now, finding the (K, top_n) combination that gave us best accuracy on CV test homes
     accur = {}
 
+
+    for K in range(K_min, K_max):
+        accur[K] = {}
+        for top_n in range(F_min, F_max):
+            temp = {}
+            for h in out.iterkeys():
+                pred = pd.DataFrame(out[h][K][top_n]).T
+                #all_but_h = [x for x in out.keys() if x!=h]
+                pred.index = [h]
+                pred.columns = [['%s_%d' %(appliance, i) for i in range(start, stop)]]
+                gt = appliance_df.ix[h][['%s_%d' %(appliance, i) for i in range(start, stop)]]
+                error = (pred-gt).abs().div(gt).mul(100)
+                #print pred, gt, error
+                mean_error = error.squeeze()
+                #print pred, gt, mean_error
+
+                temp[h]=mean_error
+            ac = pd.DataFrame(temp).T.median().mean()
+            print ac, pd.DataFrame(temp).median()
+
+            accur[K][top_n] = ac
+    #return accur
+    accur_df = pd.DataFrame(accur)
+
+
+
+
+    """
     for K in range(K_min, K_max):
         accur[K] = {}
         for top_n in range(F_min, F_max):
@@ -178,7 +206,7 @@ def _find_accuracy(home, appliance, feature="Monthly"):
             ac = pd.Series(temp).mean()
 
             accur[K][top_n] = ac
-
+    """
     accur_df = pd.DataFrame(accur)
     print accur_df
     accur_min = accur_df.min().min()
@@ -216,7 +244,7 @@ def _find_accuracy(home, appliance, feature="Monthly"):
 
 import os
 
-out_path = os.path.expanduser("~/output/journal/gemello/all_homes_variable_features/")
+out_path = os.path.expanduser("~/output/journal/gemello/new_all_homes_variable_features/")
 import sys
 appliance, feature, home = sys.argv[1], sys.argv[2], sys.argv[3]
 home = int(home)
