@@ -14,6 +14,7 @@ if CLUSTER:
 import numpy as np
 import pandas as pd
 import pickle
+from features import feature_map
 from collections import OrderedDict
 
 out_overall = pickle.load(open('../data/input/all_regions.pkl', 'r'))
@@ -95,6 +96,7 @@ def _find_accuracy(home, appliance, feature="Monthly"):
 
     test_homes = [home]
     train_homes = appliance_df[~appliance_df.index.isin([home])].index
+    print test_homes, train_homes
 
 
     #all_home_appliance = deepcopy(all_homes)
@@ -110,7 +112,7 @@ def _find_accuracy(home, appliance, feature="Monthly"):
         cv_train_home=appliance_df.ix[train_homes[cv_train]]
         cv_test_home = appliance_df.ix[train_homes[cv_test]]
         test_home_name = cv_test_home.index.values[0]
-        #print cv_test_home
+        #print cv_test_home, cv_train_home
         out[test_home_name]={}
 
 
@@ -120,7 +122,9 @@ def _find_accuracy(home, appliance, feature="Monthly"):
                               random_state=0)
         forest.fit(cv_train_home[feature_map[feature]], Y)
         importances = forest.feature_importances_
+        #print importances, feature_map[feature]
         indices = np.argsort(importances)[::-1]
+        #print indices
 
         # Now varying K and top-N features
 
@@ -129,6 +133,7 @@ def _find_accuracy(home, appliance, feature="Monthly"):
             for top_n in range(F_min,F_max):
                 out[test_home_name][K][top_n]=[]
                 top_n_features = cv_train_home[feature_map[feature]].columns[indices][:top_n]
+                #print top_n_features, top_n
 
                 # Now fitting KNN on this
                 for month in range(start, stop):
@@ -151,17 +156,19 @@ def _find_accuracy(home, appliance, feature="Monthly"):
                 gt = appliance_df.ix[h][['%s_%d' %(appliance, i) for i in range(start, stop)]]
                 error = (pred-gt).abs().div(gt).mul(100)
                 #print pred, gt, error
-                mean_error = error.mean().mean()
-                #print mean_error
+                mean_error = error.squeeze()
+                #print pred, gt, mean_error
 
                 temp[h]=mean_error
-            ac = pd.Series(temp).mean()
+            ac = pd.DataFrame(temp).T.median().mean()
+            print ac, pd.DataFrame(temp).median()
 
             accur[K][top_n] = ac
-
+    #return accur
     accur_df = pd.DataFrame(accur)
     print accur_df
     accur_min = accur_df.min().min()
+    print accur_min
     max_ac_df = accur_df[accur_df==accur_min]
     F_best = cv_train_home[feature_map[feature]].columns[indices][:max_ac_df.mean(axis=1).dropna().index.values[0]].tolist()
     K_best = max_ac_df.mean().dropna().index.values[0]
@@ -192,7 +199,7 @@ def _find_accuracy(home, appliance, feature="Monthly"):
 
 import os
 
-out_path = os.path.expanduser("~/output/journal/gemello/all_homes/")
+out_path = os.path.expanduser("~/output/journal/gemello/homes_with_all_features/")
 import sys
 appliance, feature, home = sys.argv[1], sys.argv[2], sys.argv[3]
 home = int(home)
