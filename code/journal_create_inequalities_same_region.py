@@ -137,7 +137,7 @@ for month_compute in range(month_start, month_end):
     from collections import defaultdict
     import pandas as pd
     co = defaultdict(int)
-    store_path = '../../../output/journal/vistrit/all_features/'
+    store_path = '../../../output/journal/vistrit/all_homes/'
     filename = '%s_%s_%d_%d.pkl' %(region,
                                                                         appliance,
                                                                         test_home, K)
