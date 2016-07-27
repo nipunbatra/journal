@@ -18,7 +18,7 @@ df = df.rename(columns={'house_num_rooms': 'num_rooms',
                                   'num_occupants': 'total_occupants',
                                   'difference_ratio_min_max': 'ratio_difference_min_max'})
 
-df = df[(df.full_agg_available == 1) & (df.md_available == 1)]
+#df = df[(df.full_agg_available == 1) & (df.md_available == 1)]
 
 appliances = ["hvac","fridge","wm","dw","mw","oven"]
 SLURM_OUT = "../slurm_out"
@@ -34,8 +34,8 @@ for appliance in appliances:
         start, stop=5, 11
     else:
         start, stop=1, 13
-
-    appliance_df= df.ix[df[['%s_%d' %(appliance,month) for month in range(start,stop)]].dropna().index]
+    appliance_df = df.copy()
+    #appliance_df= df.ix[df[['%s_%d' %(appliance,month) for month in range(start,stop)]].dropna().index]
     for home in appliance_df.index:
         print home, appliance
         OFILE = "%s/%s_%d.out" % (SLURM_OUT, appliance, home)
