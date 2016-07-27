@@ -19,7 +19,7 @@ test_home = int(test_home)
 K = int(K)
 
 df = out_overall[region]
-df = df[(df.full_agg_available == 1) & (df.md_available == 1)]
+#df = df[(df.full_agg_available == 1) & (df.md_available == 1)]
 
 
 from itertools import combinations
