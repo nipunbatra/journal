@@ -9,6 +9,7 @@ sys.path.append('../code/')
 from degree_days import  dd
 from regional_average_contribution import  contribution
 
+from features import feature_map
 out_overall = pickle.load(open('../data/input/all_regions.pkl','r'))
 
 import sys
@@ -19,6 +20,15 @@ test_home = int(test_home)
 K = int(K)
 
 df = out_overall[region]
+
+#drop_rows_having_no_data
+o = {}
+for h in df.index:
+    o[h]=len(df.ix[h][feature_map['Monthly+Static']].dropna())
+num_features_ser = pd.Series(o)
+drop_rows = num_features_ser[num_features_ser==0].index
+
+df = df.drop(drop_rows)
 #df = df[(df.full_agg_available == 1) & (df.md_available == 1)]
 
 
